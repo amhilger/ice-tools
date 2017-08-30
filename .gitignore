@@ -1,0 +1,13 @@
+/BEDMAP
+/MEASURES
+*.mat
+*.txt
+*.m~
+*/archive/*
+/cvx
+/CReSIS
+BBAS_PIG/slice_results
+BBAS_PIG/plot_survey_results
+BBAS_PIG/notes
+BBAS_PIG/elisa
+/picker/
