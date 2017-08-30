@@ -3,6 +3,7 @@
 *.mat
 *.txt
 *.m~
+*.asv
 */archive/*
 /cvx
 /CReSIS
