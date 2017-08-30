@@ -40,7 +40,7 @@ end
 
 %if no results_dir is specified, look at the raw data files 
 
-%%this implementation is quicky and dirty - it only takes the intersection
+%%this implementation is quick and dirty - it only takes the intersection
 %%of the transects listed in the PIK, CMP, and FOC/.../S1_POS directories.
 %%A more thorough implementation would check for the existence of the ztim
 %%in CMP, ztim_DNhH and ztim_xyhd in S1_POS, and MagLoResInco1.srf and .bed

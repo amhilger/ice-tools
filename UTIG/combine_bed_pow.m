@@ -14,7 +14,8 @@ bed_pow = bed_pow_lo;
 %noisefloor and saturation thresholds
 delta = bed_pow_hi - bed_pow_lo;
 offset = mean( delta(bed_pow_lo > nf_lo_thresh & ...
-              bed_pow_lo < sat_thresh), 'omitnan');
+                     bed_pow_lo < sat_thresh), ...
+               'omitnan');
 
 %when we hit the low-gain noise threshold, use the high-gain minus the
 %offset
