@@ -1,5 +1,5 @@
 function [traceA, traceB, x_int, y_int] = ...
-    find_intersect_lite(coeffA, coeffB, x_edgeA, x_edgeB, y_edgeA, y_edgeB)
+    find_intersect(coeffA, coeffB, x_edgeA, x_edgeB, y_edgeA, y_edgeB)
 %finds the intersection of two transect lines. Returns the index of the
 %trace corresponding to the closest x (easting) and y (northing) points. 
 %If the lines do not intersect, then traceA and traceB return as empty arrays

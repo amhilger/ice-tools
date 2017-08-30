@@ -1,5 +1,5 @@
 function [matches, self_matches] = ...
-                find_xover_lite(data_dir,starts_with_str,result_name, ...
+                find_xover_agg(data_dir,starts_with_str,result_name, ...
                                 lin_err_thresh, dist_thresh, ...
                                 bp_dist_thresh)
 
@@ -39,6 +39,7 @@ ts_bedpow   =  cell(length(transect_names),1);
 ts_geopow   =  cell(length(transect_names),1);
 ts_dist     =  cell(length(transect_names),1);
 ts_heading  =  cell(length(transect_names),1);
+ts_abrupt   =  cell(length(transect_names),1);
 
 %segment each transect
 for i = 1:length(transect_names)
@@ -47,6 +48,7 @@ for i = 1:length(transect_names)
     ts_norths{i}  = results.norths;   %for finding xovers loops
     ts_bedpow{i}  = results.max_pow;  %for computing DC offsets within TS
     ts_geopow{i}  = results.geo_pow_fr;
+    ts_abrupt{i}  = results.abrupt;
     ts_heading{i} = results.heading;
     ts_dist{i}    = results.rdr_dist; %for computing DC offsets within TS
     [seg_idx, seg_coef] = linear_segmentize(results.easts, ...
@@ -121,6 +123,7 @@ matches.easts   = zeros(num_match_guess, 2); %for plotting
 matches.norths  = zeros(num_match_guess, 2); %for plotting
 matches.dist    = zeros(num_match_guess, 1); %distance b/w pair
 matches.seg_num = zeros(num_match_guess, 2); %segment number
+matches.abrupt  = zeros(num_match_guess, 2); %segment abruptness
 
 save_idx = 1;
 %compare each pair of segments
@@ -135,7 +138,7 @@ for i = 1:length(seg_ts_idx)
         %length, so it's possible that traceA or traceB is outside of
         %corresponding segment
         [traceA, traceB] = ...
-            find_intersect_lite(seg_coeffs(i,:), seg_coeffs(j,:), ...
+            find_intersect(seg_coeffs(i,:), seg_coeffs(j,:), ...
                                 seg_e_edges{i}, seg_e_edges{j}, ...
                                 seg_n_edges{i}, seg_n_edges{j});
         %convert segment index to trace index
@@ -167,23 +170,36 @@ for i = 1:length(seg_ts_idx)
         if dmin <= dist_thresh 
                matches.ts(    save_idx,:) = [tsA tsB]; %transect index
                matches.tr_idx(save_idx,:) = [traceA traceB]; %trace index
+               
                %compute bed powers along each transect near xover
+               %use median of bed powers within a threshold distance
                bedpowA = median(ts_bedpow{tsA}(abs(ts_dist{tsA} - ...
                                             ts_dist{tsA}(traceA)) < ...
                                             bp_dist_thresh),'omitnan');
-               %use median of bed powers within a threshold distance
+
                bedpowB = median(ts_bedpow{tsB}(abs(ts_dist{tsB} - ...
                                             ts_dist{tsB}(traceB)) < ...
                                             bp_dist_thresh),'omitnan');
                matches.bed_pow(save_idx,:) = [bedpowA bedpowB];
+               
+               %use median of geo powers within a threshold distance
                geopowA = median(ts_geopow{tsA}(abs(ts_dist{tsA} - ...
                                             ts_dist{tsA}(traceA)) < ...
                                             bp_dist_thresh),'omitnan');
-               %use median of bed powers within a threshold distance
                geopowB = median(ts_geopow{tsB}(abs(ts_dist{tsB} - ...
                                             ts_dist{tsB}(traceB)) < ...
                                             bp_dist_thresh),'omitnan');
                matches.geo_pow(save_idx,:) = [geopowA geopowB];
+               
+               %use median abruptness within threshold distance
+               abruptA = median(ts_abrupt{tsA}(abs(ts_dist{tsA} - ...
+                                             ts_dist{tsA}(traceA)) < ...
+                                             bp_dist_thresh),'omitnan');
+               abruptB = median(ts_abrupt{tsB}(abs(ts_dist{tsB} - ...
+                                             ts_dist{tsB}(traceB)) < ...
+                                             bp_dist_thresh),'omitnan');
+               matches.abrupt(save_idx,:) = [abruptA abruptB];               
+               
                matches.easts(save_idx,:) =  [ts_easts{tsA}(traceA) ...
                                              ts_easts{tsB}(traceB)];
                matches.norths(save_idx,:) = [ts_norths{tsA}(traceA) ...
@@ -206,6 +222,7 @@ matches.norths  = matches.norths(  matches.ts(:,1) ~= 0, : );
 matches.dist    = matches.dist(    matches.ts(:,1) ~= 0, : );
 matches.seg_num = matches.seg_num( matches.ts(:,1) ~= 0, : );
 matches.ts      = matches.ts(      matches.ts(:,1) ~= 0, : );
+matches.abrupt  = matches.abrupt(  matches.ts(:,1) ~= 0, : );
 
 matches = deduplicate(matches, dist_thresh, transect_names);
 
@@ -277,6 +294,8 @@ close(figure(8)); figure(8)
 histogram(matches.heading(:,1) - matches.heading(:,2),20)
 title('heading')
 xlabel('deg')
+
+end
 
 
 

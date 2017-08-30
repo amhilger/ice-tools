@@ -1,8 +1,8 @@
 
 
 orig_dir = pwd;
-cd('../'); source_data_dir = [pwd '/BBAS_PIG/filtered_aligned_5dBsnr'];
-save_dir = [pwd '/BBAS_PIG/xover_filtered_5dBsnr']; cd(orig_dir)
+cd('../'); source_data_dir = [pwd '/BBAS_PIG/agg_repick_two'];
+save_dir = [pwd '/BBAS_PIG/agg_repick_xover']; cd(orig_dir)
 
 starts_with_str = {'b'};
 results_name = '_results.mat';
@@ -15,7 +15,7 @@ xover_huber_thresh = 3; %dB
 
 
 [matches, self_matches] = ...
-    find_xover_lite(source_data_dir, starts_with_str, results_name, ...
+    find_xover_agg(source_data_dir, starts_with_str, results_name, ...
                      seg_lin_err_thresh, xover_dist_thresh, xover_bp_dist);
 
 
