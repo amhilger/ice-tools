@@ -1,5 +1,5 @@
 function [max_pow, mp_sample, noise_floor, agg_pow, ft_range] = ...
-    repick_bed(results, radar_hi, radar_lo)
+    repick_bed(results, radar_lo, radar_hi)
 %repicks a transect for the picks between pri_min and pri_max
 
 %repick_parameters
@@ -45,6 +45,10 @@ for j = 1:length(pick_sample)
         continue
     end
     
+    [mp_lo, mp_id_lo] = max(radar_lo(sample_range, j));
+    [mp_hi, mp_id_hi] = max(radar_hi(sample_range, j));
+    
+    
     power_samples = combine_bed_pow(radar_lo(sample_range, j), ...
                                     radar_hi(sample_range, j));
     
@@ -54,8 +58,8 @@ for j = 1:length(pick_sample)
     %offset index of max power sample using index of beginning of range
     mp_sample(j) = sample_range(1) + peak_index - 1;
     %subtract noise_floor to normalize
-    max_pow(j) = max_pow(j) - noise_floor;
-    agg_pow(j) = agg_pow(j) - noise_floor*length(power_samples);
+    max_pow(j) = max_pow(j) - noise_floor(j);
+    agg_pow(j) = agg_pow(j) - noise_floor(j)*length(power_samples);
 end
 
 end
