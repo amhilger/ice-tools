@@ -44,6 +44,7 @@ for j = 1:length(pick_sample)
     if isnan(pick_sample(j)) || isnan(ft_range(j))
         max_pow(j) = NaN; agg_pow(j) = NaN; mp_sample(j) = NaN;
         channel_num(j) = NaN; noise_floor(j) = NaN;
+        agg_pow_norm(j) = NaN;
         continue
     end
         
@@ -54,7 +55,10 @@ for j = 1:length(pick_sample)
                    min(noise_floor_range(1), ...
                        round((pick_sample(j) + 2*ft_range(j))));
     %ensure no excessive samples accrued 
-    assert( length(mp_sample_range) > 1 + 3*ceil(ft_range(j)) )
+%     if isempty(mp_sample_range)
+%         keyboard
+%     end
+    assert( length(mp_sample_range) <= 1 + 3*ceil(ft_range(j)) )
     assert( ~isempty(mp_sample_range) )
 
     %if all samples from below noise floor range, set values to nan
@@ -74,7 +78,7 @@ for j = 1:length(pick_sample)
              mp_sample(j) = NaN;
      end
     
-    if ~isnan(mp_sample(j))
+    if ~isnan(mp_sample(j)) 
         agg_sample_range = max(1, round((mp_sample(j) - ft_range(j)))): ...
                            min(noise_floor_range(1), ...
                            round((mp_sample(j) + ft_range(j))));
@@ -98,30 +102,38 @@ end
 
 %,5, 'omitnan','truncate'
 max_pow_filt = hampel(max_pow, 11, 2);
-agg_pow_filt = hampel(agg_pow, 11, 2);
 agg_pow_norm_filt = hampel(agg_pow_norm, 11, 2);
 
 max_pow(isnan(pick_sample)) = NaN;
 
 close all
-% figure(1); plot(results.rdr_dist, max_pow, 'x')
-% hold on; plot(results.rdr_dist, results.bed_pow)
-% title('unfiltered')
-figure(2); plot(results.rdr_dist(channel_num == 1), max_pow(channel_num == 1),'.'); hold on;
-plot(results.rdr_dist(channel_num == 2), max_pow(channel_num == 2),'.')
-title('Peak Power')
-figure(1); plot(results.rdr_dist, max_pow_filt, 'x')
+figure(1); subplot(211); plot(results.rdr_dist, max_pow, 'x')
+hold on; plot(results.rdr_dist, results.bed_pow)
+legend('Unfiltered Peak Power','UTIG Piks')
+% figure(2); plot(results.rdr_dist(channel_num == 1), max_pow(channel_num == 1),'.'); hold on;
+% plot(results.rdr_dist(channel_num == 2), max_pow(channel_num == 2),'.')
+% title('Peak Power')
+figure(1); subplot(212); plot(results.rdr_dist, max_pow_filt, 'x')
 hold on; plot(results.rdr_dist, results.bed_pow)
 legend('Filtered Peak Power','UTIG Piks')
-figure(3); plot(results.rdr_dist(channel_num == 1), agg_pow(channel_num == 1),'.');
-hold on; plot(results.rdr_dist(channel_num == 2), agg_pow(channel_num == 2),'.');
-title('Aggregate power')
-figure(4); plot(results.rdr_dist(channel_num == 1), agg_pow_norm(channel_num == 1), '.');
-hold on; plot(results.rdr_dist(channel_num == 2), agg_pow_norm(channel_num == 2),'.')
-title('Normalized aggregate power')
+% figure(3); plot(results.rdr_dist(channel_num == 1), agg_pow(channel_num == 1),'.');
+% hold on; plot(results.rdr_dist(channel_num == 2), agg_pow(channel_num == 2),'.');
+% title('Aggregate power')
+% figure(4); plot(results.rdr_dist(channel_num == 1), agg_pow_norm(channel_num == 1), '.');
+% hold on; plot(results.rdr_dist(channel_num == 2), agg_pow_norm(channel_num == 2),'.')
+% title('Normalized aggregate power')
+
+figure(2);  plot(results.rdr_dist, agg_pow_norm, '.')
+hold on; plot(results.rdr_dist, agg_pow_norm_filt, 'x')
+title('Norm. agg. power'); legend('Unfiltered','Filtered')
+
+
 abrupt_filt = (max_pow_filt - noise_floor)./(agg_pow_norm_filt);
 abrupt = (max_pow - noise_floor)./(agg_pow_norm);
-figure(6); plot(results.rdr_dist, abrupt, '.', results.rdr_dist, abrupt_filt,'o')
+figure(6); plot(results.rdr_dist, abrupt, '.');
+hold on; plot(results.rdr_dist, abrupt_filt,'o')
+title('Abruptness')
+legend('Unfiltered','Filtered')
 
 % figure(2); plot(results.rdr_dist, mp_lo, 'x')
 % hold on; plot(results.rdr_dist, results.bed_pow)
