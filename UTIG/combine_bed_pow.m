@@ -1,9 +1,10 @@
-function [bed_pow, channel_num] = combine_bed_pow(bed_pow_lo, bed_pow_hi, offset)
+function [bed_pow, channel_num] = ...
+    combine_bed_pow(bed_pow_lo, bed_pow_hi, offset)
 %combines hi-gain and lo-gain channels for a transect. Computes a
 %transect-specific offset 
 
 assert(length(bed_pow_lo) == length(bed_pow_hi))
-sat_thresh = 97; %dB we don't trust anything above this
+sat_thresh = 96; %dB we don't trust anything above this
 nf_lo_thresh = 60; %dB
 
 %use low-gain by default
