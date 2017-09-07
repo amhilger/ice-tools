@@ -16,17 +16,17 @@ end
 
 
 if isempty(manual_clim)
-    survey_min = prctile(survey.(results_field), 2.5); %min(survey.(results_field))
-    survey_max = prctile(survey.(results_field), 97.5); %max(survey.(results_field))
+    color_min = prctile(survey.(results_field), 2.5); %min(survey.(results_field))
+    color_max = prctile(survey.(results_field), 97.5); %max(survey.(results_field))
     survey_95_range = prctile(survey.(results_field), 97.5) - ...
                         prctile(survey.(results_field), 2.5)
     survey_98_range = prctile(survey.(results_field), 99) - ...
         prctile(survey.(results_field), 1)
     survey_99_range = prctile(survey.(results_field), 99.5) - ...
         prctile(survey.(results_field), 0.5)
-    survey_100_range = prctile(survey.(results_field), 100) - ...
-        prctile(survey.(results_field), 0)
-    color_limits = scale_factor*([survey_min survey_max] - field_mean);
+    survey_max = prctile(survey.(results_field), 100) 
+    survey_min = prctile(survey.(results_field), 0)
+    color_limits = scale_factor*([color_min color_max] - field_mean);
 else
     color_limits = manual_clim;
 end
@@ -44,8 +44,10 @@ plot_contour(f, avg_lat, avg_lon, plot_size);
 
 hold on;
         
-scatter(survey.easts,survey.norths, ...
-        12*ones(size(survey.norths)),plot_data,...
+scatter(survey.easts(~isnan(plot_data)), ...
+        survey.norths(~isnan(plot_data)), ...
+        12*ones('like', plot_data(~isnan(plot_data))), ...
+        plot_data(~isnan(plot_data)),...
         'filled');
 
     

@@ -53,6 +53,11 @@ else
     bed_delay_lo = bed_delay_lo(bed_delay_lo ~= 0);
 end
 
+if length(bed_delay) ~= length(bed_delay_lo)
+    bed_delay = bed_delay(1:length(bed_delay_lo)); 
+    disp('Truncating hi-gain bed delays to length of low-gain bed delays')
+end
+
 
 
 cd(orig_dir)

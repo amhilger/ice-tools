@@ -6,7 +6,7 @@ save_dir    = '/data/cees/amhilger/UTIG/piks_agg';
 cd(save_dir); cd(orig_dir); cd ../tools
 tr_names = get_transect_names(source_dir, {'X','Y','DRP'});
 
-for i = 1:1%length(tr_names)
+for i = 73:73%length(tr_names)
     disp(tr_names{i})
     cd(orig_dir)
     [radar_lo, radar_hi] = load_incoh_radar(tr_names{i});
@@ -20,10 +20,10 @@ for i = 1:1%length(tr_names)
      results.max_pow_sample, ...
      results.noise_floor, ...
      results.agg_pow, ...
-     results.ft_range] = ...
+     results.ft_range, ...
+     results.abrupt] = ...
         repick_bed(results, radar_lo, radar_hi);
-    %calculate abruptness
-    results.abrupt = results.max_pow./results.agg_pow;
+
     cd(save_dir)
     save([tr_names{i} '_results.mat'], 'results','source_dir')
 end

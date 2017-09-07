@@ -12,13 +12,7 @@ end
 [bed_delay, bed_delay_lo] = load_bed_delay(transect_name);
 [~, surf_delay] = load_rdr_clear(transect_name);
 
-if length(bed_delay) ~= length(bed_delay_lo)
-%     a = find(isnan(bed_delay));
-%     b = find(isnan(bed_delay_lo));
-%     keyboard
-    bed_delay = bed_delay(1:length(bed_delay_lo)); 
-    disp('Truncating hi-gain bed delays to length of low-gain bed delays')
-end
+
 
 %By matching indexes of Nans, confirmed extra samples in X67a bed_delay are
 %all at end, so can match up by truncating

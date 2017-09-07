@@ -1,4 +1,5 @@
-function [max_pow, mp_sample, noise_floor, agg_pow, ft_range, abrupt] = ...
+function [max_pow_norm_filt, mp_sample, noise_floor, ...
+          agg_pow_norm_filt, ft_range, abrupt_filt] = ...
     repick_bed(results, radar_lo, radar_hi)
 %repicks a transect for the picks between pri_min and pri_max
 
@@ -39,6 +40,10 @@ ft_range = sqrt(pulse_hw*(pick_thick/n_ice + pick_clear))*samples_per_meter;
 noise_floor_hi = mean(mean(radar_lo(noise_floor_range,:), ...
                                   'omitnan'), 'omitnan') - hi_lo_offset;
 
+                              
+%for each trace - note: this code could be improved by handling all the NaN
+%cases with a few vectorized statements upfront and only iterating over the
+%traces where we have adequate info to both with a repick
 for j = 1:length(pick_sample)
     %if no valid pick sample, just skip it
     if isnan(pick_sample(j)) || isnan(ft_range(j))
@@ -54,10 +59,6 @@ for j = 1:length(pick_sample)
     mp_sample_range = max(1, round((pick_sample(j) - ft_range(j)))): ...
                    min(noise_floor_range(1), ...
                        round((pick_sample(j) + 2*ft_range(j))));
-    %ensure no excessive samples accrued 
-%     if isempty(mp_sample_range)
-%         keyboard
-%     end
     assert( length(mp_sample_range) <= 1 + 3*ceil(ft_range(j)) )
     assert( ~isempty(mp_sample_range) )
 
@@ -79,10 +80,13 @@ for j = 1:length(pick_sample)
      end
     
     if ~isnan(mp_sample(j)) 
+        %find first-return radius around max power 
         agg_sample_range = max(1, round((mp_sample(j) - ft_range(j)))): ...
                            min(noise_floor_range(1), ...
                            round((mp_sample(j) + ft_range(j))));
         assert( length(agg_sample_range) <= 1 + 2*ceil(ft_range(j)) )
+        %use combined hi-gain and lo-gain channel to improve snr of
+        %off-peak powers
         agg_pow_samples = combine_bed_pow(radar_lo(agg_sample_range,j), ...
                                           radar_hi(agg_sample_range,j), ...
                                           hi_lo_offset);
@@ -100,45 +104,16 @@ for j = 1:length(pick_sample)
 
 end
 
-%,5, 'omitnan','truncate'
+%use hampel filter to smooth max power and normalize by subtracting noise
+%floor
 max_pow_filt = hampel(max_pow, 11, 2);
+max_pow_norm_filt = max_pow_filt - noise_floor;
+%use hampel median filter to smooth aggregate power
 agg_pow_norm_filt = hampel(agg_pow_norm, 11, 2);
 
-max_pow(isnan(pick_sample)) = NaN;
+%calculate abruptness using filtered, normlaized powers
+abrupt_filt = max_pow_norm_filt./agg_pow_norm_filt;
 
-close all
-figure(1); subplot(211); plot(results.rdr_dist, max_pow, 'x')
-hold on; plot(results.rdr_dist, results.bed_pow)
-legend('Unfiltered Peak Power','UTIG Piks')
-% figure(2); plot(results.rdr_dist(channel_num == 1), max_pow(channel_num == 1),'.'); hold on;
-% plot(results.rdr_dist(channel_num == 2), max_pow(channel_num == 2),'.')
-% title('Peak Power')
-figure(1); subplot(212); plot(results.rdr_dist, max_pow_filt, 'x')
-hold on; plot(results.rdr_dist, results.bed_pow)
-legend('Filtered Peak Power','UTIG Piks')
-% figure(3); plot(results.rdr_dist(channel_num == 1), agg_pow(channel_num == 1),'.');
-% hold on; plot(results.rdr_dist(channel_num == 2), agg_pow(channel_num == 2),'.');
-% title('Aggregate power')
-% figure(4); plot(results.rdr_dist(channel_num == 1), agg_pow_norm(channel_num == 1), '.');
-% hold on; plot(results.rdr_dist(channel_num == 2), agg_pow_norm(channel_num == 2),'.')
-% title('Normalized aggregate power')
-
-figure(2);  plot(results.rdr_dist, agg_pow_norm, '.')
-hold on; plot(results.rdr_dist, agg_pow_norm_filt, 'x')
-title('Norm. agg. power'); legend('Unfiltered','Filtered')
-
-
-abrupt_filt = (max_pow_filt - noise_floor)./(agg_pow_norm_filt);
-abrupt = (max_pow - noise_floor)./(agg_pow_norm);
-figure(6); plot(results.rdr_dist, abrupt, '.');
-hold on; plot(results.rdr_dist, abrupt_filt,'o')
-title('Abruptness')
-legend('Unfiltered','Filtered')
-
-% figure(2); plot(results.rdr_dist, mp_lo, 'x')
-% hold on; plot(results.rdr_dist, results.bed_pow)
-% figure(3); plot(results.rdr_dist, mp_hi, 'x')
-% hold on; plot(results.rdr_dist, results.bed_pow)
 
 end
 

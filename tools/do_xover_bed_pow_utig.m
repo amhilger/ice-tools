@@ -1,8 +1,8 @@
 
 
 orig_dir = pwd;
-cd('../'); source_dir = [pwd '/UTIG/piks_lo_hi_filtered'];
-save_dir = [pwd '/UTIG/xover_lo_hi_filtered']; cd(orig_dir)
+cd('../'); source_dir = [pwd '/UTIG/piks_agg'];
+save_dir = [pwd '/UTIG/piks_agg_xover']; cd(orig_dir)
 
 starts_with_str = {'DRP','X','Y'};
 results_name = '_results.mat';

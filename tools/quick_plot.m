@@ -1,8 +1,8 @@
 orig_dir = pwd;
-cd ../; load_dir = [pwd '/BBAS_PIG/agg_repick_xover']; cd ./tools
-results_field = 'geo_pow_xover';
-fig_num = 8;
-map_size = 1050;%km
+cd ../; load_dir = [pwd '/UTIG/piks_agg_plottable']; cd ./tools
+results_field = 'agg_pow';
+fig_num = 6;
+map_size = 800; %km
 %clim_override = [-20 30]
 
 if any(strcmp(results_field, {'atten_rate', 'atten_unc'}))
@@ -27,7 +27,7 @@ if any(strcmp(results_field, {'reflect', 'rdr_geo_pow', ...
                               'bed_pow_calib', 'geo_pow_calib', ...
                               'max_pow', 'agg_pow', 'snr_agg'}))
     field_units = 'dB';
-    subtract_mean = true; %subtract _survey_ mean
+    subtract_mean = false; %subtract _survey_ mean
     %plot_clim = [-25 25];
 else
     subtract_mean = false;
@@ -65,7 +65,7 @@ if exist('clim_override','var')
     plot_clim = clim_override;
 end
     
-plot_contour_scatter(load_dir, fig_num, results_field, ...
+plot_contour_surf(load_dir, fig_num, results_field, ...
                scale_factor, subtract_mean, ...
                plot_clim, field_units, map_size)
 clear plot_clim        
