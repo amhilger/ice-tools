@@ -76,8 +76,8 @@ for j = 1:length(pick_sample)
     %filt_power = sgolayfilt(power_samples, 2, 5);
     %convert to log scale
     
-    %filt_power = 10*log10(filt_power); %sets floor of 0 dB
-    agg_pow(j) = 10*sum(log10(power_samples));
+    %sum aggregate powers in linear space then convert to dB
+    agg_pow(j) = 10*log10(sum(power_samples));
     %use the sample with max power within the sample range
     [max_pow(j), peak_index] = max(10*log10(power_samples));
     mp_sample(j) = sample_range(1) + peak_index - 1;

@@ -6,7 +6,7 @@ save_dir    = '/data/cees/amhilger/UTIG/piks_agg';
 cd(save_dir); cd(orig_dir); cd ../tools
 tr_names = get_transect_names(source_dir, {'X','Y','DRP'});
 
-for i = 73:73%length(tr_names)
+for i = 1:length(tr_names)
     disp(tr_names{i})
     cd(orig_dir)
     [radar_lo, radar_hi] = load_incoh_radar(tr_names{i});

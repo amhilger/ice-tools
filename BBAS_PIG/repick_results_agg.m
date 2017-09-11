@@ -46,8 +46,8 @@ res_pri = res_pri(5:end-5);
 
 
 
-%number of batches of around 1000 repicks each
-num_batches = ceil(length(res_pri)/1000);
+%number of batches of around 100 repicks each
+num_batches = ceil(length(res_pri)/100);
 %actual number of repicks in each batch
 batch_size = floor(length(res_pri)/num_batches);
 

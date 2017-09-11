@@ -1,6 +1,6 @@
 
 results_dir = [pwd '/results_aligned_5dBsnr'];
-save_dir = [pwd '/agg_repick_two'];
+save_dir = [pwd '/agg_repick'];
 orig_dir = cd(save_dir); cd(orig_dir)
 radar_dir = [pwd '/SAR_processed_aligned'];
 
