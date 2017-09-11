@@ -3,8 +3,8 @@ load_dir = [pwd '/piks_agg'];
 save_dir = [pwd '/piks_agg_plottable'];
 orig_dir = pwd;
 
-
-transect_names = get_transects();
+cd ../tools
+transect_names = get_transect_names(load_dir); cd(orig_dir)
 
 for i = 1:length(transect_names)
     cd(load_dir)

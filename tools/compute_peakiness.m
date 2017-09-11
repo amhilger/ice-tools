@@ -8,19 +8,19 @@ c_light = 2.99792e8; %m/s
 
 %scalar function where g is abbreviation in abruptness formula
 g = @(rms, freq_ctr) 4*pi*rms*freq_ctr*n_ice/c_light;
-%rms based on typical values
-rms = 0:0.001:0.2;
+%rms based on typical values for 60 - 150 MHz radar
+rms = 0:0.001:0.50;
 
 %determine the abruptness function of rms for reference radar
 abrupt_rms_ref = abrupt_max_ref*exp(-g(rms, f_c_ref).^2) .* ...
-                    besselj(0,g(rms, f_c_ref).^2/2);
+                    besseli(0,g(rms, f_c_ref).^2/2);
 %linearly scale reference abruptness to peakiness index
 peaky_ref = abrupt_rms_ref/max(abrupt_rms_ref);
 
 
 %determine abruptness function of rms for input radar
 abrupt_rms_in = abrupt_max*exp(-g(rms, f_c).^2) .* ...
-                    besselj(0,g(rms, f_c).^2/2);
+                    besseli(0,g(rms, f_c).^2/2);
 %back solve the actual rms values corresponding to the input
 rms_in = interp1(abrupt_rms_in, rms, abrupt);
 %determine the peakiness corresponding to input rms values

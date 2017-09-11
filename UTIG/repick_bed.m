@@ -62,18 +62,19 @@ for j = 1:length(pick_sample)
     assert( length(mp_sample_range) <= 1 + 3*ceil(ft_range(j)) )
     assert( ~isempty(mp_sample_range) )
 
-    %if all samples from below noise floor range, set values to nan
-    
+    %find maxima of lo- and hi-gain channels 
     [mp_lo, mp_id_lo] = max(radar_lo(mp_sample_range, j));
     [mp_hi, mp_id_hi] = max(radar_hi(mp_sample_range, j));
     
+    %select which maxima to use based on noisefloors and saturation levels
+    %of the two channels
     [max_pow(j), channel_num(j)] = ...
             combine_bed_pow(mp_lo, mp_hi, hi_lo_offset);
-     
+     %compute sample of max power based on which channel used
      switch channel_num(j)
-         case 1
+         case 1 %lo-gain channel used for max power
              mp_sample(j) = mp_sample_range(1) + mp_id_lo - 1;
-         case 2
+         case 2 %hi-gain channel used for max power
              mp_sample(j) = mp_sample_range(1) + mp_id_hi - 1;
          otherwise
              mp_sample(j) = NaN;
@@ -90,7 +91,9 @@ for j = 1:length(pick_sample)
         agg_pow_samples = combine_bed_pow(radar_lo(agg_sample_range,j), ...
                                           radar_hi(agg_sample_range,j), ...
                                           hi_lo_offset);
-        agg_pow(j) = sum(agg_pow_samples);
+        %convert power samples to linear space, sum, then convert back to
+        %log space
+        agg_pow(j) = 10*log10(sum(10.^(agg_pow_samples/10)));
         noise_floor(j) = noise_floor_hi;
         %save normalized agg power because would be annoying to reconstruct
         %how many samples were summed if we did it later
@@ -104,8 +107,8 @@ for j = 1:length(pick_sample)
 
 end
 
-%use hampel filter to smooth max power and normalize by subtracting noise
-%floor
+%use hampel median filter to smooth max power and normalize by subtracting
+%noise floor
 max_pow_filt = hampel(max_pow, 11, 2);
 max_pow_norm_filt = max_pow_filt - noise_floor;
 %use hampel median filter to smooth aggregate power
