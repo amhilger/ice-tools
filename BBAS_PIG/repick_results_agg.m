@@ -46,8 +46,8 @@ res_pri = res_pri(5:end-5);
 
 
 
-%number of batches of around 100 repicks each
-num_batches = ceil(length(res_pri)/100);
+%number of batches of around 5000 repicks each
+num_batches = ceil(length(res_pri)/5000);
 %actual number of repicks in each batch
 batch_size = floor(length(res_pri)/num_batches);
 
@@ -88,7 +88,8 @@ results.max_pow_sample = repick_mp_sample;
 results.noise_floor = repick_noise_floor;
 results.agg_pow = repick_agg_pow;
 results.ft_range = repick_ft_range;
-results.abrupt = results.max_pow./results.agg_pow;
+%compute abruptness in linear space by subtracting in log space, then converting from dB to linear space
+results.abrupt = 10.^(0.1*(results.max_pow-results.agg_pow));
 
 cd(save_dir)
 save_name = [transect_name '_results.mat'];

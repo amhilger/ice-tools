@@ -81,12 +81,11 @@ for j = 1:length(pick_sample)
     %use the sample with max power within the sample range
     [max_pow(j), peak_index] = max(10*log10(power_samples));
     mp_sample(j) = sample_range(1) + peak_index - 1;
-    %subtract noise_floor to normalize
-    max_pow(j) = max_pow(j) - noise_floor(j);
-    agg_pow(j) = agg_pow(j) - noise_floor(j)*length(power_samples);
 end
 
-%convert noise floor to dB scale
+%subtract noise_floor to normalize
+max_pow = max_pow - noise_floor;
+agg_pow = agg_pow - noise_floor;
 
 
 end

@@ -95,10 +95,6 @@ for j = 1:length(pick_sample)
         %log space
         agg_pow(j) = 10*log10(sum(10.^(agg_pow_samples/10)));
         noise_floor(j) = noise_floor_hi;
-        %save normalized agg power because would be annoying to reconstruct
-        %how many samples were summed if we did it later
-        agg_pow_norm(j) = agg_pow(j) - ...
-                            length(agg_sample_range)*noise_floor(j);
     else %if max power not defined, leave agg pow and noisefloor NaN   
         agg_pow(j) = NaN;
         noise_floor(j) = NaN;
@@ -112,10 +108,12 @@ end
 max_pow_filt = hampel(max_pow, 11, 2);
 max_pow_norm_filt = max_pow_filt - noise_floor;
 %use hampel median filter to smooth aggregate power
-agg_pow_norm_filt = hampel(agg_pow_norm, 11, 2);
-
-%calculate abruptness using filtered, normlaized powers
-abrupt_filt = max_pow_norm_filt./agg_pow_norm_filt;
+agg_pow_filt = hampel(agg_pow, 11, 2);
+agg_pow_norm_filt = agg_pow_filt - noise_floor;
+%calculate abruptness using filtered, normalalized powers
+%since powers are already in log scale, we subtract to do division,
+%then convert from dB back to linear
+abrupt_filt = 10.^(0.1*(max_pow_norm_filt-agg_pow_norm_filt));
 
 
 end
