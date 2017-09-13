@@ -52,12 +52,21 @@ ft_range = sqrt(pulse_hw*(pick_thick/n_ice + pick_clear))*samples_per_meter;
 for j = 1:length(pick_sample)
     %don't allow any picks from below noise floor range because it has a
     %wraparound effect from fft calc
+    
+    if isnan(pick_sample(j)) || isnan(ft_range(j))
+        max_pow(j) = NaN; agg_pow(j) = NaN;
+        mp_sample(j) = NaN; noise_floor(j) = NaN;
+        continue
+    end
+    
     sample_range = max(1, round((pick_sample(j) - ft_range(j)))): ...
-                   min(1190, round((pick_sample(j) + ft_range(j))));
+                   min(1190, round((pick_sample(j) + 2*ft_range(j))));
+    assert( length(mp_sample_range) <= 1 + 3*ceil(ft_range(j)) )
     %rounding because picks at decimal values
     trace_num = find(pick_pri(j) <= sar_out_pri,1);
     trace_range = max(1, (trace_num - MA_window_size/2)) : ...
                   min(size(sar_out, 2), (trace_num + MA_window_size/2));
+    %take noise floor from bottom of radargram
     noise_floor(j) = 10*log10(mean(mean(abs(sar_out(noise_floor_range, ...
                                            trace_range)))));
     %if all samples from below noise floor range, set values to nan
@@ -66,26 +75,37 @@ for j = 1:length(pick_sample)
         noise_floor(j) = NaN; mp_sample(j) = NaN;
         continue
     end
-    
     %performs the centered moving average over the trace range
     power_samples = mean(abs(sar_out(sample_range, trace_range)), 2);
-    %take noise floor from bottom of radargram
-    
-    
-    %perform light-touch moving average filter to attenuate funkiness
-    %filt_power = sgolayfilt(power_samples, 2, 5);
-    %convert to log scale
-    
-    %sum aggregate powers in linear space then convert to dB
-    agg_pow(j) = 10*log10(sum(power_samples));
-    %use the sample with max power within the sample range
+    %pick the max
     [max_pow(j), peak_index] = max(10*log10(power_samples));
+    %offset the index based on the beginning of the sample range
     mp_sample(j) = sample_range(1) + peak_index - 1;
+    
+    if ~isnan(mp_sample(j))
+        agg_sample_range = max(1, round((mp_sample(j) - ft_range(j)))): ...
+                           min(noise_floor_range(1), ...
+                           round((mp_sample(j) + ft_range(j))));
+        assert( length(agg_sample_range) <= 1 + 2*ceil(ft_range(j)) )
+        %use combined hi-gain and lo-gain channel to improve snr of
+        %off-peak powers
+        agg_pow_samples = mean( abs( sar_out(agg_sample_range, trace_range)), 2);
+        %sum aggregate powers in linear space then convert to dB
+        agg_pow(j) = 10*log10(sum(agg_pow_samples)); 
+    else %if max power not defined, leave agg pow and noisefloor NaN   
+        agg_pow(j) = NaN;
+        noise_floor(j) = NaN;
+        agg_pow(j) = NaN;
+    end
+
+ 
+    %use the sample with max power within the sample range
+    
 end
 
-%subtract noise_floor to normalize
-max_pow = max_pow - noise_floor;
-agg_pow = agg_pow - noise_floor;
+%apply median filter and subtract noise_floor to normalize
+max_pow = hampel(max_pow, 11, 2) - noise_floor;
+agg_pow = hampel(agg_pow, 11, 2) - noise_floor;
 
 
 end

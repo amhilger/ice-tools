@@ -1,7 +1,8 @@
 orig_dir = pwd;
-cd ../; load_dir = [pwd '/UTIG/piks_agg_plottable']; cd ./tools
-results_field = 'agg_pow';
-fig_num = 6;
+%cd ../; load_dir = [pwd '/UTIG/piks_agg_plottable']; cd ./tools
+cd ../; load_dir = [pwd '/BBAS_PIG/agg_repick_plottable']; cd ./tools
+results_field = 'ft_range';
+fig_num = 4;
 map_size = 800; %km
 %clim_override = [-20 30]
 

@@ -23,7 +23,6 @@ hi_lo_offset = compute_hi_lo_offset(results.bed_pow_lo, results.bed_pow_hi);
 mp_sample = zeros(L,1); %sample of re-pick
 max_pow = zeros(L,1); %dB power of re-pick
 agg_pow = zeros(L,1); %aggregated power
-agg_pow_norm = zeros(L,1); %normalized aggregate power
 channel_num = zeros(L, 1);
 noise_floor = zeros(L,1);
 
@@ -49,7 +48,6 @@ for j = 1:length(pick_sample)
     if isnan(pick_sample(j)) || isnan(ft_range(j))
         max_pow(j) = NaN; agg_pow(j) = NaN; mp_sample(j) = NaN;
         channel_num(j) = NaN; noise_floor(j) = NaN;
-        agg_pow_norm(j) = NaN;
         continue
     end
         
@@ -98,7 +96,7 @@ for j = 1:length(pick_sample)
     else %if max power not defined, leave agg pow and noisefloor NaN   
         agg_pow(j) = NaN;
         noise_floor(j) = NaN;
-        agg_pow_norm(j) = NaN;
+        agg_pow(j) = NaN;
     end
 
 end
