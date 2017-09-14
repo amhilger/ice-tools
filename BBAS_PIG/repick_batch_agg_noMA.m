@@ -7,8 +7,6 @@ n_ice = 299.8/168; %from Vaughan
 pulse_hw = 15; %m, c_light/pulse chirp frequency/2
 
 %repick_parameters
-MA_window_size = 10; %number of traces to average for re-pick
-assert(mod(MA_window_size, 2) == 0) %MA_window must be even 
 noise_floor_range = 1190:1205; %range of samples to use for noisefloor
 
 %retrieve necessary parameters from results
@@ -29,8 +27,8 @@ pick_thick = res_thick(res_pri >= pri_min & res_pri <= pri_max);
 pick_pri = res_pri(res_pri >= pri_min & res_pri <= pri_max);
 
 %retrieve radar data 
-sar_out_min_pri = pri_min - 50*ceil(MA_window_size/2);
-sar_out_max_pri = pri_max + 50*ceil(MA_window_size/2);
+sar_out_min_pri = pri_min - 50;
+sar_out_max_pri = pri_max + 50;
 sar_out = get_radar_pri(transect_name, ...
                         sar_out_min_pri, sar_out_max_pri, ...
                         radar_dir);
@@ -61,14 +59,13 @@ for j = 1:length(pick_sample)
     
     sample_range = max(1, round((pick_sample(j) - ft_range(j)))): ...
                    min(1190, round((pick_sample(j) + 2*ft_range(j))));
-    assert( length(sample_range) <= 1 + 3*ceil(ft_range(j)) )
     %rounding because picks at decimal values
+    assert( length(sample_range) <= 1 + 3*ceil(ft_range(j)) )
+
     trace_num = find(pick_pri(j) <= sar_out_pri,1);
-    trace_range = max(1, (trace_num - MA_window_size/2)) : ...
-                  min(size(sar_out, 2), (trace_num + MA_window_size/2));
     %take noise floor from bottom of radargram
-    noise_floor(j) = 10*log10(mean(mean(abs(sar_out(noise_floor_range, ...
-                                           trace_range)))));
+    noise_floor(j) = 10*log10(mean(abs(sar_out(noise_floor_range, ...
+                                           trace_num))));
     %if all samples from below noise floor range, set values to nan
     if isempty(sample_range)
         agg_pow(j) = NaN; max_pow(j) = NaN;
@@ -76,7 +73,7 @@ for j = 1:length(pick_sample)
         continue
     end
     %performs the centered moving average over the trace range
-    power_samples = mean(abs(sar_out(sample_range, trace_range)), 2);
+    power_samples = abs(sar_out(sample_range, trace_num));
     %pick the max
     [max_pow(j), peak_index] = max(10*log10(power_samples));
     %offset the index based on the beginning of the sample range
@@ -89,9 +86,9 @@ for j = 1:length(pick_sample)
         assert( length(agg_sample_range) <= 1 + 2*ceil(ft_range(j)) )
         %use combined hi-gain and lo-gain channel to improve snr of
         %off-peak powers
-        agg_pow_samples = mean( abs( sar_out(agg_sample_range, trace_range)), 2);
+        agg_pow_samples = abs( sar_out(agg_sample_range, trace_num) );
         %sum aggregate powers in linear space then convert to dB
-        agg_pow(j) = 10*log10(sum(agg_pow_samples)); 
+        agg_pow(j) = 10*log10(sum(abs(agg_pow_samples))); 
     else %if max power not defined, leave agg pow and noisefloor NaN   
         agg_pow(j) = NaN;
         noise_floor(j) = NaN;
