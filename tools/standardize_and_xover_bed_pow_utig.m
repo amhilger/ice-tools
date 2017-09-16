@@ -14,7 +14,7 @@ xover_huber_thresh = 3; %dB
 %threshold beyond which deviation signifies likely outlier
 
 [matches, self_matches] = ...
-    find_xover_lite(source_dir, starts_with_str,results_name, ...
+    find_xover_agg(source_dir, starts_with_str,results_name, ...
                      seg_lin_err_thresh, xover_dist_thresh, xover_bp_dist);
 
 %Fit DC offsets using Huber penalty function
@@ -63,7 +63,10 @@ for i = 1:length(transect_names)
      cd('../tools')
     
     
-    results.bed_pow_xover = results.bed_pow + dc_offset(i);
+    results.agg_pow_xover = results.agg_pow + dc_offset(i);
+    results.max_pow_xover = results.max_pow + dc_offset(i); 
+    results.geo_pow_agg_xover = results.geo_pow_agg + dc_offset(i);
+    results.geo_pow_max_xover = results.geo_pow_max + dc_offset(i);
     disp(['Number of picks: ' num2str(length(results.bed_pow_xover))])
     disp(['Pik spacing: ' ...
             num2str((results.rdr_dist(end)-results.rdr_dist(1)) / ...

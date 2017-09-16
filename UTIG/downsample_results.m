@@ -1,6 +1,6 @@
 
-load_dir = [pwd '/piks_agg'];
-save_dir = [pwd '/piks_agg_plottable'];
+load_dir = [pwd '/piks_agg_filter'];
+save_dir = [pwd '/piks_agg_filter_plottable'];
 orig_dir = pwd;
 
 cd ../tools
