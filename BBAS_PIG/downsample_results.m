@@ -1,6 +1,6 @@
 
-load_dir = [pwd '/agg_repick_filter'];
-save_dir = [pwd '/agg_repick_filter_plottable'];
+load_dir = [pwd '/agg_repick_xover'];
+save_dir = [pwd '/agg_repick_xover_plottable'];
 orig_dir = pwd;
 
 cd ../tools

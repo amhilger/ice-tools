@@ -18,6 +18,7 @@ end
 if isempty(manual_clim)
     color_min = prctile(survey.(results_field), 2.5); %min(survey.(results_field))
     color_max = prctile(survey.(results_field), 97.5); %max(survey.(results_field))
+    survey_stdev = std(survey.(results_field))
     survey_95_range = prctile(survey.(results_field), 97.5) - ...
                         prctile(survey.(results_field), 2.5)
     survey_98_range = prctile(survey.(results_field), 99) - ...

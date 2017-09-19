@@ -39,7 +39,7 @@ ts_maxpow   =  cell(length(transect_names),1);
 ts_aggpow   =  cell(length(transect_names),1);
 ts_dist     =  cell(length(transect_names),1);
 ts_heading  =  cell(length(transect_names),1);
-ts_abrupt   =  cell(length(transect_names),1);
+ts_peaki   =  cell(length(transect_names),1);
 
 %segment each transect
 for i = 1:length(transect_names)
@@ -48,7 +48,7 @@ for i = 1:length(transect_names)
     ts_norths{i}  = results.norths;   %for finding xovers loops
     ts_maxpow{i}  = results.geo_pow_max; %use geometrically corrected versions
     ts_aggpow{i}  = results.geo_pow_agg;
-    ts_abrupt{i}  = results.abrupt;
+    ts_peaki{i}   = results.peakiness;
     ts_heading{i} = results.heading;
     ts_dist{i}    = results.rdr_dist; %for computing DC offsets within TS
     [seg_idx, seg_coef] = linear_segmentize(results.easts, ...
@@ -123,7 +123,7 @@ matches.easts   = zeros(num_match_guess, 2); %for plotting
 matches.norths  = zeros(num_match_guess, 2); %for plotting
 matches.dist    = zeros(num_match_guess, 1); %distance b/w pair
 matches.seg_num = zeros(num_match_guess, 2); %segment number
-matches.abrupt  = zeros(num_match_guess, 2); %segment abruptness
+matches.peaki   = zeros(num_match_guess, 2); %segment abruptness
 
 save_idx = 1;
 %compare each pair of segments
@@ -192,15 +192,15 @@ for i = 1:length(seg_ts_idx)
                matches.agg_pow(save_idx,:) = [aggpowA aggpowB];
                
                %use median abruptness within threshold distance
-               abruptA = median(ts_abrupt{tsA}(abs(ts_dist{tsA} - ...
+               peakiA = median(ts_peaki{tsA}(abs(ts_dist{tsA} - ...
                                              ts_dist{tsA}(traceA)) < ...
                                              bp_dist_thresh),'omitnan');
-               abruptB = median(ts_abrupt{tsB}(abs(ts_dist{tsB} - ...
+               peakiB = median(ts_peaki{tsB}(abs(ts_dist{tsB} - ...
                                              ts_dist{tsB}(traceB)) < ...
                                              bp_dist_thresh),'omitnan');
-               matches.abrupt(save_idx,:) = [abruptA abruptB];               
+               matches.peaki(save_idx,:)  = [peakiA peakiB];               
                
-               matches.easts(save_idx,:) =  [ts_easts{tsA}(traceA) ...
+               matches.easts(save_idx,:)  =  [ts_easts{tsA}(traceA) ...
                                              ts_easts{tsB}(traceB)];
                matches.norths(save_idx,:) = [ts_norths{tsA}(traceA) ...
                                              ts_norths{tsB}(traceB)];
@@ -222,7 +222,7 @@ matches.norths  = matches.norths(  matches.ts(:,1) ~= 0, : );
 matches.dist    = matches.dist(    matches.ts(:,1) ~= 0, : );
 matches.seg_num = matches.seg_num( matches.ts(:,1) ~= 0, : );
 matches.ts      = matches.ts(      matches.ts(:,1) ~= 0, : );
-matches.abrupt  = matches.abrupt(  matches.ts(:,1) ~= 0, : );
+matches.peaki   = matches.peaki(   matches.ts(:,1) ~= 0, : );
 
 matches = deduplicate(matches, dist_thresh, transect_names);
 
@@ -261,7 +261,7 @@ end
 close(figure(3)); figure(3)
 scatter(matches.easts(:,1), matches.norths(:,1), ...
         5*ones(size(matches.easts,1),1), ...
-        matches.max_pow(:,1) - matches.max_pow(:,2), ...
+        matches.agg_pow(:,1) - matches.agg_pow(:,2), ...
         'filled')
 title('xover error - uncorrected')
 colorbar
@@ -269,18 +269,19 @@ colorbar
 close(figure(4)); figure(4)
 scatter(matches.easts(:,1), matches.norths(:,1), ...
         5*ones(size(matches.easts,1),1), ...
-        matches.dist, ...
+        matches.peaki(:,1) - matches.peaki(:,2), ...
         'filled')
-title('xover distance')
+title('peakiness discrepancy')
 colorbar
 
+
 close(figure(5)); figure(5)
-histogram(matches.dist)
-title('xover distance')
+histogram(diff(matches.peaki,1,2))
+title('Peakiness discrepancy')
 xlabel('m')
 
 close(figure(6)); figure(6)
-histogram(matches.agg_pow(:,1) - matches.agg_pow(:,2),20)
+histogram(diff(matches.agg_pow, 1, 2))
 title('xover aggpow-gc')
 xlabel('dB')
 
@@ -290,10 +291,7 @@ histogram(matches.max_pow(:,1) - matches.max_pow(:,2),20)
 title('xover maxpow-gc')
 xlabel('dB')
 
-close(figure(8)); figure(8)
-histogram(matches.heading(:,1) - matches.heading(:,2),20)
-title('heading')
-xlabel('deg')
+
 
 end
 

@@ -1,8 +1,8 @@
 
 
 orig_dir = pwd;
-cd('../'); source_dir = [pwd '/UTIG/piks_lo_hi_filtered'];
-save_dir = [pwd '/UTIG/xover_lo_hi_filtered']; cd(orig_dir)
+cd('../'); source_dir = [pwd '/UTIG/piks_agg_filter'];
+save_dir = [pwd '/UTIG/piks_agg_xover']; cd(orig_dir)
 
 starts_with_str = {'DRP','X','Y'};
 results_name = '_results.mat';
@@ -19,8 +19,8 @@ xover_huber_thresh = 3; %dB
 
 %Fit DC offsets using Huber penalty function
 disp(['Uncorrected RMSD: ' ...
-        num2str(norm(matches.bed_pow(:,1)-matches.bed_pow(:,2)) / ...
-                sqrt(size(matches.ts,1)))])
+        num2str( norm(diff(matches.agg_pow, 1, 2)) / ...
+                 sqrt(size(matches.ts,1)) )])
 
 
 cvx_begin quiet
@@ -30,8 +30,8 @@ cvx_begin quiet
     %use huber penalty function, kinked at 3dB
     minimize (sum(huber(adj_bedpows1 - adj_bedpows2, xover_huber_thresh)))
     subject to
-        adj_bedpows1 == matches.bed_pow(:,1) + dc_offset(matches.ts(:,1))
-        adj_bedpows2 == matches.bed_pow(:,2) + dc_offset(matches.ts(:,2))  
+        adj_bedpows1 == matches.agg_pow(:,1) + dc_offset(matches.ts(:,1))
+        adj_bedpows2 == matches.agg_pow(:,2) + dc_offset(matches.ts(:,2))  
 cvx_end
 cd(orig_dir)
 
@@ -42,6 +42,17 @@ disp(['Corrected RMSD: ' ...
 
 dc_offset = dc_offset - mean(dc_offset); %center dc_offsets around zero
 %%
+
+scatter(matches,easts, matches.norths, 
+
+%plot corrected xover errors
+close(figure(8)); figure(8)
+scatter(matches.easts(:,1), matches.norths(:,1), ...
+        10*ones(size(matches.easts,1),1), ...
+        adj_bedpows1 - adj_bedpows2, ...
+        'filled')
+title('xover error - corrected')
+colorbar
 
 transect_names = get_transect_names(source_dir,starts_with_str);
 
@@ -67,7 +78,7 @@ for i = 1:length(transect_names)
     results.max_pow_xover = results.max_pow + dc_offset(i); 
     results.geo_pow_agg_xover = results.geo_pow_agg + dc_offset(i);
     results.geo_pow_max_xover = results.geo_pow_max + dc_offset(i);
-    disp(['Number of picks: ' num2str(length(results.bed_pow_xover))])
+    disp(['Number of picks: ' num2str(length(results.agg_pow_xover))])
     disp(['Pik spacing: ' ...
             num2str((results.rdr_dist(end)-results.rdr_dist(1)) / ...
                      length(results.rdr_dist))])

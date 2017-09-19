@@ -1,8 +1,8 @@
 orig_dir = pwd;
 %cd ../; load_dir = [pwd '/UTIG/piks_agg_plottable']; cd ./tools
-%cd ../; load_dir = [pwd '/BBAS_PIG/agg_repick_filter']; cd ./tools
-cd ../; load_dir = [pwd '/ASE/agg_filter']; cd ./tools
-results_field = 'peakiness';
+cd ../; load_dir = [pwd '/BBAS_PIG/agg_repick_xover_plottable']; cd ./tools
+%cd ../; load_dir = [pwd '/ASE/agg_filter']; cd ./tools
+results_field = 'geo_pow_agg_xover';
 fig_num = 7;
 map_size = 1150; %km
 %clim_override = [-20 30]
@@ -28,9 +28,10 @@ if any(strcmp(results_field, {'reflect', 'rdr_geo_pow', ...
                               'bed_pow_lo', 'bed_pow_hi', ...
                               'bed_pow_calib', 'geo_pow_calib', ...
                               'max_pow', 'agg_pow', 'snr_agg', ...
-                              'geo_pow_max', 'geo_pow_agg'}))
+                              'geo_pow_max', 'geo_pow_agg', ...
+                              'geo_pow_max_xover', 'geo_pow_agg_xover'}))
     field_units = 'dB';
-    subtract_mean = false; %subtract _survey_ mean
+    subtract_mean = true; %subtract _survey_ mean
     %plot_clim = [-25 25];
 else
     subtract_mean = false;
