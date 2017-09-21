@@ -10,7 +10,7 @@ function [results] = ...
 %this version allows 10% attenuation uncertain
 
 %if transect is empty (due to filtering for ice thickness or bed power, eg)
-if isempty(results.bed_pow)
+if isempty(results.max_pow)
     results.atten_rate = zeros(0,1);
     results.atten_unc = zeros(0,1);
     results.reflect = zeros(0,1);
@@ -22,7 +22,7 @@ end;
 
     
 max_fit_radius = 500; %km
-C_0_min = -0.7; %minimum correlation for thickness and geometrically corrected power
+C_0_min = -0.5; %minimum correlation for thickness and geometrically corrected power
 att_unc_max = 0.001; %dB/km
 att_unc_max_per = 0.003; %dB/km (max when using percentage attenuation rate)
 att_unc_per = 0.1; %allow any attenution rate with uncertainty below 10%
@@ -39,15 +39,15 @@ else
     ts_ice_thick = results.rdr_thick;
 end
 %use calib-corrected bed powers if available
-if isfield(results, 'bed_pow_calib')
-    bed_power = survey.bed_pow_calib;
-    ts_bed_power = results.bed_pow_calib;
-elseif isfield(results,'bed_pow_xover')
-    bed_power = survey.bed_pow_xover;
-    ts_bed_power = results.bed_pow_xover;
+if isfield(results, 'agg_pow_calib')
+    bed_power = survey.agg_pow_calib;
+    ts_bed_power = results.agg_pow_calib;
+elseif isfield(results,'agg_pow_xover')
+    bed_power = survey.agg_pow_xover;
+    ts_bed_power = results.agg_pow_xover;
 else
-    bed_power = survey.bed_pow;
-    ts_bed_power = results.bed_pow;
+    bed_power = survey.agg_pow;
+    ts_bed_power = results.agg_pow;
 end
 ts_idx = survey.ts_idx; 
 %calculate geometrically corrected bed power
@@ -55,7 +55,7 @@ geo_power = geo_correct_power(bed_power, survey.rdr_clear, ice_thick);
 ts_geo_power = geo_correct_power(ts_bed_power, results.rdr_clear, ...
                                  ts_ice_thick);
 
-L = length(results.bed_pow);
+L = length(results.agg_pow);
 %initialize outputs
 atten_rate_array = zeros(L,1);
 atten_unc_array = zeros(L,1);

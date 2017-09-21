@@ -2,8 +2,8 @@
 %downsampled version for plotting. This version uses a single attenuation
 %rate for each transect, which is statistically fit.
 
-source_dir = [pwd '/cross_calib'];
-save_dir = [pwd '/atten_fit2d_ri_10km_C07'];
+source_dir = [pwd '/cross_calib_all'];
+save_dir = [pwd '/atten_agg_10km'];
 orig_dir = cd(save_dir);
 cd(orig_dir)
 
