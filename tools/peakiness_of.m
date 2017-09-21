@@ -12,8 +12,8 @@ rms = 0:0.001:0.50;
 
 %determine the abruptness function of rms for reference radar (see Peters
 %05' for correct equation)
-abrupt_rms_in = abrupt_max_ref*exp(-g(rms, f_c_ref).^2) .* ...
-                    besseli(0,g(rms, f_c_ref).^2/2).^2;
+abrupt_rms_in = abrupt_max*exp(-g(rms, f_c).^2) .* ...
+                    besseli(0,g(rms, f_c).^2/2).^2;
 %linearly scale reference abruptness to peakiness index
 peaky_ref = abrupt_rms_in/max(abrupt_rms_in);
 

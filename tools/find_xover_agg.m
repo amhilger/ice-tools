@@ -9,9 +9,7 @@ num_match_guess = 2500;
 
 orig_dir  = pwd;
 
-if ~exist('starts_with_str','var')
-    starts_with_str = {'DRP','X','Y'};
-end
+
 if ~exist('result_name','var')
     result_name = '_results.mat';
 end
@@ -260,7 +258,7 @@ end
 
 close(figure(3)); figure(3)
 scatter(matches.easts(:,1), matches.norths(:,1), ...
-        5*ones(size(matches.easts,1),1), ...
+        10*ones(size(matches.easts,1),1), ...
         matches.agg_pow(:,1) - matches.agg_pow(:,2), ...
         'filled')
 title('xover error - uncorrected')
@@ -268,7 +266,7 @@ colorbar
 
 close(figure(4)); figure(4)
 scatter(matches.easts(:,1), matches.norths(:,1), ...
-        5*ones(size(matches.easts,1),1), ...
+        10*ones(size(matches.easts,1),1), ...
         matches.peaki(:,1) - matches.peaki(:,2), ...
         'filled')
 title('peakiness discrepancy')

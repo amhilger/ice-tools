@@ -42,22 +42,28 @@ seg_ts_idx  =  cell(length(transect_names),1);
 seg_srv_idx =  cell(length(transect_names),1);
 ts_easts    =  cell(length(transect_names),1);
 ts_norths   =  cell(length(transect_names),1);
-ts_bedpow   =  cell(length(transect_names),1);
 ts_thick    =  cell(length(transect_names),1);
 ts_clear    =  cell(length(transect_names),1);
-ts_geopow   =  cell(length(transect_names),1);
+ts_abrupt   =  cell(length(transect_names),1);
+ts_peaki    =  cell(length(transect_names),1);
+ts_geoagg   =  cell(length(transect_names),1);
+ts_geomax   =  cell(length(transect_names),1);
 ts_dist     =  cell(length(transect_names),1);
 ts_heading  =  cell(length(transect_names),1);
+
 
 %segment each transect
 for i = 1:length(transect_names)
     cd(data_dir); load([transect_names{i} result_name]); cd(orig_dir)
     ts_easts{i}   = results.easts;    %save easts and norths 
     ts_norths{i}  = results.norths;   %for finding xovers loops
-    ts_bedpow{i}  = results.bed_pow_xover;  %for computing DC offsets within TS
     ts_thick{i}   = results.rdr_thick; %ice thickness comparison
     ts_clear{i}   = results.rdr_clear;
-    ts_geopow{i}  = results.geo_pow_xover; 
+    ts_peaki{i}   = results.peakiness;
+    ts_abrupt{i}  = results.abrupt;
+    %geometrically corrected, in-survey cross-over corrected 
+    ts_geoagg{i}  = results.geo_pow_agg_xover; 
+    ts_geomax{i}  = results.geo_pow_max_xover;
     ts_heading{i} = results.heading;
     ts_dist{i}    = results.rdr_dist; %for computing DC offsets within TS
     [seg_idx, seg_coef] = linear_segmentize(results.easts, ...
@@ -127,10 +133,10 @@ disp(['Split ' num2str(length(transect_names)) ' transects into ' ...
 %each column corresponds to one of the partners in the match
 matches.ts      = zeros(num_match_guess, 2); %transect
 matches.tr_idx  = zeros(num_match_guess, 2); %trace index within transect
-matches.bed_pow = zeros(num_match_guess, 2); %bed power at intersection
 matches.ice_thk = zeros(num_match_guess, 2); %ice thickness at intersection
 matches.rdr_clr = zeros(num_match_guess, 2);
-matches.geo_pow = zeros(num_match_guess, 2);
+matches.agg_pow = zeros(num_match_guess, 2); %aggregated pow at intersect
+matches.max_pow = zeros(num_match_guess, 2); %max pow at intersection
 matches.easts   = zeros(num_match_guess, 2); %for plotting
 matches.norths  = zeros(num_match_guess, 2); %for plotting
 matches.dist    = zeros(num_match_guess, 1); %distance b/w pair
@@ -152,7 +158,7 @@ for i = 1:length(seg_ts_idx)
         %length, so it's possible that traceA or traceB is outside of
         %corresponding segment
         [traceA, traceB] = ...
-            find_intersect_lite(seg_coeffs(i,:), seg_coeffs(j,:), ...
+            find_intersect(seg_coeffs(i,:), seg_coeffs(j,:), ...
                                 seg_e_edges{i}, seg_e_edges{j}, ...
                                 seg_n_edges{i}, seg_n_edges{j});
         %convert segment index to trace index
@@ -184,23 +190,47 @@ for i = 1:length(seg_ts_idx)
         if dmin <= dist_thresh 
                matches.ts(    save_idx,:) = [tsA tsB]; %transect index
                matches.tr_idx(save_idx,:) = [traceA traceB]; %trace index
-               %compute bed powers along each transect near xover
-               bedpowA = median(ts_bedpow{tsA}(abs(ts_dist{tsA} - ...
+               
+               %compute max power at crossovers
+               maxpowA = median(ts_geomax{tsA}(abs(ts_dist{tsA} - ...
                                             ts_dist{tsA}(traceA)) < ...
                                             bp_dist_thresh),'omitnan');
-               %use median of bed powers within a threshold distance
-               bedpowB = median(ts_bedpow{tsB}(abs(ts_dist{tsB} - ...
+               %use median of powers within a threshold distance
+               maxpowB = median(ts_geomax{tsB}(abs(ts_dist{tsB} - ...
                                             ts_dist{tsB}(traceB)) < ...
                                             bp_dist_thresh),'omitnan');
-               matches.bed_pow(save_idx,:) = [bedpowA bedpowB];
-               geopowA = median(ts_geopow{tsA}(abs(ts_dist{tsA} - ...
+               matches.max_pow(save_idx,:) = [maxpowA maxpowB];
+               
+               %compute aggreate power at crossovers
+               aggpowA = median(ts_geoagg{tsA}(abs(ts_dist{tsA} - ...
                                             ts_dist{tsA}(traceA)) < ...
                                             bp_dist_thresh),'omitnan');
-               %use median of bed powers within a threshold distance
-               geopowB = median(ts_geopow{tsB}(abs(ts_dist{tsB} - ...
+               %use median of powers within a threshold distance
+               aggpowB = median(ts_geoagg{tsB}(abs(ts_dist{tsB} - ...
                                             ts_dist{tsB}(traceB)) < ...
                                             bp_dist_thresh),'omitnan');
-               matches.geo_pow(save_idx,:) = [geopowA geopowB];
+               matches.agg_pow(save_idx,:) = [aggpowA aggpowB];
+               
+               %compute peakiness at cross-overs
+               peakiA = median(ts_peaki{tsA}(abs(ts_dist{tsA} - ...
+                                            ts_dist{tsA}(traceA)) < ...
+                                            bp_dist_thresh),'omitnan');
+               %use median of powers within a threshold distance
+               peakiB = median(ts_peaki{tsB}(abs(ts_dist{tsB} - ...
+                                            ts_dist{tsB}(traceB)) < ...
+                                            bp_dist_thresh),'omitnan');
+               matches.peaki(save_idx,:) = [peakiA peakiB];
+               
+               %compute abruptness at cross-overs
+               abruptA = median(ts_peaki{tsA}(abs(ts_dist{tsA} - ...
+                                            ts_dist{tsA}(traceA)) < ...
+                                            bp_dist_thresh),'omitnan');
+               %use median of abruptnesses within a threshold distance
+               abruptB = median(ts_abrupt{tsB}(abs(ts_dist{tsB} - ...
+                                            ts_dist{tsB}(traceB)) < ...
+                                            bp_dist_thresh),'omitnan');
+               matches.abrupt(save_idx,:) = [abruptA abruptB];
+               
                matches.easts(save_idx,:) =  [ts_easts{tsA}(traceA) ...
                                              ts_easts{tsB}(traceB)];
                matches.norths(save_idx,:) = [ts_norths{tsA}(traceA) ...
@@ -217,8 +247,10 @@ for i = 1:length(seg_ts_idx)
 end
 %remove trailing zeros
 matches.tr_idx  = matches.tr_idx(  matches.ts(:,1) ~= 0, : );
-matches.bed_pow = matches.bed_pow( matches.ts(:,1) ~= 0, : );
-matches.geo_pow = matches.geo_pow( matches.ts(:,1) ~= 0, : );
+matches.max_pow = matches.max_pow( matches.ts(:,1) ~= 0, : );
+matches.agg_pow = matches.agg_pow( matches.ts(:,1) ~= 0, : );
+matches.peaki = matches.peaki(   matches.ts(:,1) ~= 0, : );
+matches.abrupt  = matches.abrupt(  matches.ts(:,1) ~= 0, : );
 matches.ice_thk = matches.ice_thk( matches.ts(:,1) ~= 0, : );
 matches.rdr_clr = matches.rdr_clr( matches.ts(:,1) ~= 0, : );
 matches.easts   = matches.easts(   matches.ts(:,1) ~= 0, : );
@@ -256,35 +288,32 @@ end
 close(figure(3)); figure(3)
 scatter(matches.easts(:,1), matches.norths(:,1), ...
         5*ones(size(matches.easts,1),1), ...
-        matches.bed_pow(:,1) - matches.bed_pow(:,2), ...
+        matches.agg_pow(:,1) - matches.agg_pow(:,2), ...
         'filled')
-title('xover error - uncorrected bed power')
+title('xover error - uncorrected')
 colorbar
 
 close(figure(4)); figure(4)
 scatter(matches.easts(:,1), matches.norths(:,1), ...
         5*ones(size(matches.easts,1),1), ...
-        matches.dist, ...
+        matches.peaki(:,1) - matches.peaki(:,2), ...
         'filled')
-title('xover distance')
+title('peakiness discrepancy')
 colorbar
+
 
 close(figure(5)); figure(5)
-histogram(matches.dist)
-title('xover distance')
+histogram(diff(matches.peaki,1,2))
+title('Peakiness discrepancy')
+xlabel('m')
 
 close(figure(6)); figure(6)
-scatter(matches.easts(:,1), matches.norths(:,1), ...
-        5*ones(size(matches.easts,1),1), ...
-        matches.geo_pow(:,1) - matches.geo_pow(:,2), ...
-        'filled')
-title('xover error - uncorrected geo power')
-colorbar
+histogram(diff(matches.agg_pow, 1, 2))
+title('xover aggpow-gc')
+xlabel('dB')
+
 
 close(figure(7)); figure(7)
-scatter(matches.easts(:,1), matches.norths(:,1), ...
-        5*ones(size(matches.easts,1),1), ...
-        matches.ice_thk(:,1) - matches.ice_thk(:,2), ...
-        'filled')
-title('xover error - ice thick')
-colorbar
+histogram(matches.max_pow(:,1) - matches.max_pow(:,2),20)
+title('xover maxpow-gc')
+xlabel('dB')
