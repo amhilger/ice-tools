@@ -1,8 +1,8 @@
 
 starts_with_str = {'DRP','X','Y','b'};
 orig_dir = pwd;
-load_dir = [pwd '/cross_calib_all'];
-save_dir = [pwd '/cross_calib_all_plot'];
+load_dir = [pwd '/piks_agg_xover'];
+save_dir = [pwd '/piks_agg_xover_plottable'];
 results_name = '_results.mat';
 
 cd ../tools

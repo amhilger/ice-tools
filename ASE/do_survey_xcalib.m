@@ -11,8 +11,8 @@
 
 starts_with_str = {'DRP','X','Y','b'};
 orig_dir = pwd;
-source_data_dir = [pwd '/piks_agg_xover_all'];
-save_dir = [pwd '/cross_calib_all'];
+source_data_dir = [pwd '/piks_agg_xover'];
+save_dir = [pwd '/cross_calib'];
 results_name = '_results.mat';
 
 seg_lin_err_thresh = 75; %m

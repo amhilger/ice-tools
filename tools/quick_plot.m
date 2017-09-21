@@ -1,9 +1,9 @@
 orig_dir = pwd;
 %cd ../; load_dir = [pwd '/UTIG/piks_agg_plottable']; cd ./tools
 %cd ../; load_dir = [pwd '/BBAS_PIG/agg_repick_xover_plottable']; cd ./tools
-cd ../; load_dir = [pwd '/ASE/cross_calib_all_plot']; cd ./tools
-results_field = 'abrupt';
-fig_num = 8;
+cd ../; load_dir = [pwd '/ASE/piks_agg_xover_plottable']; cd ./tools
+results_field = 'peakiness';
+fig_num = 11;
 map_size = 1050; %km
 %clim_override = [0 15]
 
@@ -44,6 +44,10 @@ if any(strcmp(results_field, {'rdr_thick','ice_thick','bm_thick', ...
                               'rdr_height','srf_height'}))
     field_units = 'm';
 end 
+
+if any(strcmp(results_field, {'rms_norm'}))
+    field_units = 'wavelengths';
+end
 
 if any(strcmp(results_field, {'fit_dist'}))
     field_units = 'km';

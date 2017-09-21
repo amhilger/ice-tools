@@ -44,7 +44,7 @@ ts_easts    =  cell(length(transect_names),1);
 ts_norths   =  cell(length(transect_names),1);
 ts_thick    =  cell(length(transect_names),1);
 ts_clear    =  cell(length(transect_names),1);
-ts_abrupt   =  cell(length(transect_names),1);
+ts_rms      =  cell(length(transect_names),1);
 ts_peaki    =  cell(length(transect_names),1);
 ts_geoagg   =  cell(length(transect_names),1);
 ts_geomax   =  cell(length(transect_names),1);
@@ -60,7 +60,7 @@ for i = 1:length(transect_names)
     ts_thick{i}   = results.rdr_thick; %ice thickness comparison
     ts_clear{i}   = results.rdr_clear;
     ts_peaki{i}   = results.peakiness;
-    ts_abrupt{i}  = results.abrupt;
+    ts_rms{i}     = results.rms_norm;
     %geometrically corrected, in-survey cross-over corrected 
     ts_geoagg{i}  = results.geo_pow_agg_xover; 
     ts_geomax{i}  = results.geo_pow_max_xover;
@@ -222,14 +222,14 @@ for i = 1:length(seg_ts_idx)
                matches.peaki(save_idx,:) = [peakiA peakiB];
                
                %compute abruptness at cross-overs
-               abruptA = median(ts_peaki{tsA}(abs(ts_dist{tsA} - ...
+               rmsA = median(ts_rms{tsA}(abs(ts_dist{tsA} - ...
                                             ts_dist{tsA}(traceA)) < ...
                                             bp_dist_thresh),'omitnan');
                %use median of abruptnesses within a threshold distance
-               abruptB = median(ts_abrupt{tsB}(abs(ts_dist{tsB} - ...
+               rmsB = median(ts_rms{tsB}(abs(ts_dist{tsB} - ...
                                             ts_dist{tsB}(traceB)) < ...
                                             bp_dist_thresh),'omitnan');
-               matches.abrupt(save_idx,:) = [abruptA abruptB];
+               matches.rms(save_idx,:) = [rmsA rmsB];
                
                matches.easts(save_idx,:) =  [ts_easts{tsA}(traceA) ...
                                              ts_easts{tsB}(traceB)];
@@ -249,8 +249,8 @@ end
 matches.tr_idx  = matches.tr_idx(  matches.ts(:,1) ~= 0, : );
 matches.max_pow = matches.max_pow( matches.ts(:,1) ~= 0, : );
 matches.agg_pow = matches.agg_pow( matches.ts(:,1) ~= 0, : );
-matches.peaki = matches.peaki(   matches.ts(:,1) ~= 0, : );
-matches.abrupt  = matches.abrupt(  matches.ts(:,1) ~= 0, : );
+matches.peaki   = matches.peaki(   matches.ts(:,1) ~= 0, : );
+matches.rms     = matches.rms(  matches.ts(:,1) ~= 0, : );
 matches.ice_thk = matches.ice_thk( matches.ts(:,1) ~= 0, : );
 matches.rdr_clr = matches.rdr_clr( matches.ts(:,1) ~= 0, : );
 matches.easts   = matches.easts(   matches.ts(:,1) ~= 0, : );
@@ -317,3 +317,8 @@ close(figure(7)); figure(7)
 histogram(matches.max_pow(:,1) - matches.max_pow(:,2),20)
 title('xover maxpow-gc')
 xlabel('dB')
+
+close(figure(8)); figure(8)
+histogram(diff(matches.rms,1,2))
+title('Normalized rms discrepancy')
+xlabel('wavelengths')

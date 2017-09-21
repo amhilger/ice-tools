@@ -37,7 +37,8 @@ ts_maxpow   =  cell(length(transect_names),1);
 ts_aggpow   =  cell(length(transect_names),1);
 ts_dist     =  cell(length(transect_names),1);
 ts_heading  =  cell(length(transect_names),1);
-ts_peaki   =  cell(length(transect_names),1);
+ts_peaki    =  cell(length(transect_names),1);
+ts_rms      =  cell(length(transect_names),1);
 
 %segment each transect
 for i = 1:length(transect_names)
@@ -47,6 +48,7 @@ for i = 1:length(transect_names)
     ts_maxpow{i}  = results.geo_pow_max; %use geometrically corrected versions
     ts_aggpow{i}  = results.geo_pow_agg;
     ts_peaki{i}   = results.peakiness;
+    ts_rms{i}     = results.rms_norm;
     ts_heading{i} = results.heading;
     ts_dist{i}    = results.rdr_dist; %for computing DC offsets within TS
     [seg_idx, seg_coef] = linear_segmentize(results.easts, ...
@@ -122,6 +124,7 @@ matches.norths  = zeros(num_match_guess, 2); %for plotting
 matches.dist    = zeros(num_match_guess, 1); %distance b/w pair
 matches.seg_num = zeros(num_match_guess, 2); %segment number
 matches.peaki   = zeros(num_match_guess, 2); %segment abruptness
+matches.rms     = zeros(num_match_guess, 2); %normalized rms
 
 save_idx = 1;
 %compare each pair of segments
@@ -189,14 +192,23 @@ for i = 1:length(seg_ts_idx)
                                             bp_dist_thresh),'omitnan');
                matches.agg_pow(save_idx,:) = [aggpowA aggpowB];
                
-               %use median abruptness within threshold distance
+               %use median peakiness within threshold distance
                peakiA = median(ts_peaki{tsA}(abs(ts_dist{tsA} - ...
                                              ts_dist{tsA}(traceA)) < ...
                                              bp_dist_thresh),'omitnan');
                peakiB = median(ts_peaki{tsB}(abs(ts_dist{tsB} - ...
                                              ts_dist{tsB}(traceB)) < ...
                                              bp_dist_thresh),'omitnan');
-               matches.peaki(save_idx,:)  = [peakiA peakiB];               
+               matches.peaki(save_idx,:)  = [peakiA peakiB];
+               
+               %use median rms within threshold distance
+               rmsA = median(ts_rms{tsA}(abs(ts_dist{tsA} - ...
+                                             ts_dist{tsA}(traceA)) < ...
+                                             bp_dist_thresh),'omitnan');
+               rmsB = median(ts_rms{tsB}(abs(ts_dist{tsB} - ...
+                                             ts_dist{tsB}(traceB)) < ...
+                                             bp_dist_thresh),'omitnan');
+               matches.rms(save_idx,:)  = [rmsA rmsB];   
                
                matches.easts(save_idx,:)  =  [ts_easts{tsA}(traceA) ...
                                              ts_easts{tsB}(traceB)];
@@ -221,6 +233,7 @@ matches.dist    = matches.dist(    matches.ts(:,1) ~= 0, : );
 matches.seg_num = matches.seg_num( matches.ts(:,1) ~= 0, : );
 matches.ts      = matches.ts(      matches.ts(:,1) ~= 0, : );
 matches.peaki   = matches.peaki(   matches.ts(:,1) ~= 0, : );
+matches.rms     = matches.rms(     matches.ts(:,1) ~= 0, : );
 
 matches = deduplicate(matches, dist_thresh, transect_names);
 
@@ -288,6 +301,11 @@ close(figure(7)); figure(7)
 histogram(matches.max_pow(:,1) - matches.max_pow(:,2),20)
 title('xover maxpow-gc')
 xlabel('dB')
+
+close(figure(8)); figure(8)
+histogram(diff(matches.rms,1,2))
+title('Normalized rms discrepancy')
+xlabel('wavelengths')
 
 
 
